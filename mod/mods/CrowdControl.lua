@@ -13,7 +13,7 @@ end
 local socket = require("socket")
 client = nil
 announce = false
-
+hidden = false
 
 
 table.insert(mods,
@@ -35,6 +35,8 @@ table.insert(mods,
             client:setoption('tcp-nodelay',true)
             client:connect("127.0.0.1", 58430)
             announce = false
+
+
         end,
         on_disable = function()
             if client then
@@ -45,6 +47,17 @@ table.insert(mods,
         end,
 
         on_pre_update = function()
+
+            if hidden then
+                if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
+                    hidden = false
+                    G.hand.states.visible = true
+                else
+                    G.hand.states.visible = false
+                end
+            end
+
+
             if not announce and client and not G.screenwipe then
 
                 local status = client:getpeername()
@@ -78,11 +91,64 @@ table.insert(mods,
 
         on_key_pressed = function(key_name)
             if (key_name == "down") then
-
+                --G.hand.states.visible = false
             end
+            if (key_name == "up") then
+                --G.hand.states.visible = true
+            end            
         end,
     }
 )
+
+
+function addFaceCard()
+    local suit = ""
+    local s = math.random(4)
+
+    if s == 1 then suit = "D" end
+    if s == 2 then suit = "C" end
+    if s == 3 then suit = "H" end
+    if s == 4 then suit = "S" end
+
+    local val = ""
+    s = math.random(3)
+
+    if s == 1 then val = "J" end
+    if s == 2 then val = "Q" end
+    if s == 3 then val = "K" end
+
+    local type = G.P_CARDS[suit.."_"..val]
+
+    return addToHand(type)
+end
+
+function addNumberCard()
+    local suit = ""
+    local s = math.random(4)
+
+    if s == 1 then suit = "D" end
+    if s == 2 then suit = "C" end
+    if s == 3 then suit = "H" end
+    if s == 4 then suit = "S" end
+
+    local val = ""
+    s = math.random(10)
+
+    if s == 1 then val = "A" end
+    if s == 2 then val = "2" end
+    if s == 3 then val = "3" end
+    if s == 4 then val = "4" end
+    if s == 5 then val = "5" end
+    if s == 6 then val = "6" end
+    if s == 7 then val = "7" end
+    if s == 8 then val = "8" end
+    if s == 9 then val = "9" end
+    if s == 10 then val = "T" end
+
+    local type = G.P_CARDS[suit.."_"..val]
+
+    return addToHand(type)
+end
 
 function addToHand(value)
     if (G.hand == nil) then return false end
@@ -99,14 +165,20 @@ function addToHand(value)
     return true
 end
 
-function openBooster(center)
+function openBooster(centertxt)
     if (G.hand == nil) then return false end
     if (#G.hand.cards < 1) then return false end
     if opening then return false end
-    center = G.P_CENTERS[center]
+
+
+    local center = G.P_CENTERS[centertxt]
     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
         local card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS.S_A, center, nil)
-        
+
+        if centertxt:find("buffoon") then
+            hidden = true
+            G.hand.states.visible = false
+        end
 
         card.cost = 0
 
@@ -132,6 +204,32 @@ function cycleHand(value, target)
     return true end }))
     return true
 end
+
+function debuffHand(value, target)
+    if target~=nil then target = tonumber(target) end
+    if (G.hand == nil) then return false end
+    if (#G.hand.cards < 1) then return false end
+
+    if value == "true" then value = true end
+    if value == "false" then value = false end
+
+    if target ~= nil then
+        local state = G.hand.cards[target].debuff
+        if value == state then return false end
+    end
+
+
+    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
+        for i=1, #G.hand.cards do
+            if target == nil or i == target then
+                G.hand.cards[i].debuff = value
+            end
+        end
+
+    return true end }))
+    return true
+end
+
 
 function boostHand(value, target)
     value = tonumber(value)

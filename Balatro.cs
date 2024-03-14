@@ -56,9 +56,9 @@ namespace CrowdControl.Games.Packs.Balatro
                     new Effect("Cycle Hand Up 4", "cycleHand_4") { Category = new string[]{ "Hand", "Card Values"} },
                     new Effect("Cycle Hand Down 4", "cycleHand_-4") { Category = new string[]{ "Hand", "Card Values"} },
                     new Effect("Boost Hand",    "boostHand_1") { Category = new string[]{ "Hand", "Card Values"} },
-                    new Effect("Debuff Hand",   "boostHand_-1") { Category = new string[]{ "Hand", "Card Values"} },
-                    new Effect("Boost Hand 4",  "boostHand_4") { Category = new string[]{ "Hand", "Card Values"} },
-                    new Effect("Debuff Hand 4", "boostHand_-4") { Category = new string[]{ "Hand", "Card Values"} },
+                    new Effect("Reduce Hand",   "boostHand_-1") { Category = new string[]{ "Hand", "Card Values"} },
+                    new Effect("Boost Hand by 4",  "boostHand_4") { Category = new string[]{ "Hand", "Card Values"} },
+                    new Effect("Reduce Hand by  4", "boostHand_-4") { Category = new string[]{ "Hand", "Card Values"} },
                     new Effect("Randomize Hand Values", "randomizeValue") { Category = new string[]{ "Hand", "Card Values"} },
 
                     new Effect("Cycle Random Card Up", "rand_cycleHand_1") { Category = new string[]{ "Single Card", "Card Values"} },
@@ -66,9 +66,9 @@ namespace CrowdControl.Games.Packs.Balatro
                     new Effect("Cycle Random Card Up 4", "rand_cycleHand_4") { Category = new string[]{ "Single Card", "Card Values"} },
                     new Effect("Cycle Random Card Down 4", "rand_cycleHand_-4") { Category = new string[]{ "Single Card", "Card Values"} },
                     new Effect("Boost Random Card",    "rand_boostHand_1") { Category = new string[]{ "Single Card", "Card Values"} },
-                    new Effect("Debuff Random Card",   "rand_boostHand_-1") { Category = new string[]{ "Single Card", "Card Values"} },
-                    new Effect("Boost Random Card 4",  "rand_boostHand_4") { Category = new string[]{ "Single Card", "Card Values"} },
-                    new Effect("Debuff Random Card 4", "rand_boostHand_-4") { Category = new string[]{ "Single Card", "Card Values"} },
+                    new Effect("Reduce Random Card",   "rand_boostHand_-1") { Category = new string[]{ "Single Card", "Card Values"} },
+                    new Effect("Boost Random Card by 4",  "rand_boostHand_4") { Category = new string[]{ "Single Card", "Card Values"} },
+                    new Effect("Reduce Random Card by 4", "rand_boostHand_-4") { Category = new string[]{ "Single Card", "Card Values"} },
                     new Effect("Randomize Random Card Value", "rand_randomizeValue") { Category = new string[]{ "Single Card", "Card Values"} },
 
 
@@ -175,7 +175,14 @@ namespace CrowdControl.Games.Packs.Balatro
                     new Effect("Draw a Card", "drawFromDeck_1") { Category = new string[]{ "Playing Cards", "Deck", "Give Cards"} },
                     new Effect("Return a Discarded Card", "drawFromDiscard_1") { Category = new string[]{ "Playing Cards", "Give Cards"} },
                     new Effect("Shuffle Discards into Deck", "reshuffle") { Category = new string[]{ "Playing Cards", "Deck", "Give Cards"} },
+                    new Effect("Give Random Face Card", "addFaceCard") { Category = new string[]{ "Playing Cards", "Give Cards"} },
+                    new Effect("Give Random Number Card", "addNumberCard") { Category = new string[]{ "Playing Cards", "Give Cards"} },
 
+
+                    new Effect("Debuff Hand", "debuffHand_true") { Category = new string[]{ "Hand", "Debuffs"} },
+                    new Effect("Un-Debuff Hand", "debuffHand_false") { Category = new string[]{ "Hand", "Debuffs"} },
+                    new Effect("Debuff Random Card", "rand_debuffHand_true") { Category = new string[]{ "Single Card", "Debuffs"} },
+                    new Effect("Un-Debuff Random Card", "rand_debuffHand_false") { Category = new string[]{ "Single Card", "Debuffs"} },
 
                     /*
 
