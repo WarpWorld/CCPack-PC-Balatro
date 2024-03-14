@@ -1,6 +1,6 @@
 local mod_id = "crowd_control"
 local mod_name = "Crowd Control"
-local mod_version = "v1.0.0"
+local mod_version = "v1.0.1"
 local mod_author = "dtothefourth"
 
 local CardAPI = InitCardAPI()
