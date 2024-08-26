@@ -1,10 +1,3 @@
-local mod_id = "crowd_control"
-local mod_name = "Crowd Control"
-local mod_version = "v1.0.1"
-local mod_author = "dtothefourth"
-
-local CardAPI = InitCardAPI()
-
 if (sendDebugMessage == nil) then
     sendDebugMessage = function(_)
     end
@@ -16,90 +9,287 @@ announce = false
 hidden = false
 
 
-table.insert(mods,
-    {
-        mod_id = mod_id,
-        name = mod_name,
-        version = mod_version,
-        author = mod_author,
-        enabled = true,
-        description = {
-            "Adds support for Crowd Control integration",
-            "http://crowdcontrol.live"
-
-        },
-        on_enable = function()
-            client =  socket.tcp()
-            client:settimeout(0)
-            client:setoption('keepalive',true)
-            client:setoption('tcp-nodelay',true)
-            client:connect("127.0.0.1", 58430)
-            announce = false
+local function on_enable()
+    client =  socket.tcp()
+    client:settimeout(0)
+    client:setoption('keepalive',true)
+    client:setoption('tcp-nodelay',true)
+    client:connect("127.0.0.1", 58430)
+    announce = false
 
 
-        end,
-        on_disable = function()
-            if client then
-                client:close()
-                client = nil
-            end
+end
+
+local function on_disable()
+    if client then
+        client:close()
+        client = nil
+    end
+    announce = true
+end
+
+local function on_pre_update()
+    if hidden then
+        if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
+            hidden = false
+            G.hand.states.visible = true
+        else
+            G.hand.states.visible = false
+        end
+    end
+
+
+    if not announce and client and not G.screenwipe then
+
+        local status = client:getpeername()
+        if status == nil then return end
+
+
+
+        if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
             announce = true
-        end,
 
-        on_pre_update = function()
-
-            if hidden then
-                if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
-                    hidden = false
-                    G.hand.states.visible = true
-                else
-                    G.hand.states.visible = false
-                end
-            end
+    
+            G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
+                G.FUNCS.wipe_on( { "Crowd Control Connected" },true)
+    
+                G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.75,func = function()
+                    G.FUNCS.wipe_off()
+                return true end }))
+            return true end }))
 
 
-            if not announce and client and not G.screenwipe then
+    
+            return
+        end
+    end
 
-                local status = client:getpeername()
-                if status == nil then return end
-
-
-
-                if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
-                    announce = true
-
-            
-                    G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
-                        G.FUNCS.wipe_on( { "Crowd Control Connected" },true)
-            
-                        G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.75,func = function()
-                            G.FUNCS.wipe_off()
-                        return true end }))
-                    return true end }))
+    if client then
+        parseMessages()
+    end
+end
 
 
-            
-                    return
-                end
-            end
-        
-            if client then
-                parseMessages()
-            end
-        end,
+local function on_key_pressed(key_name)
+    if (key_name == "down") then
+        --G.hand.states.visible = false
+    end
+    if (key_name == "up") then
+        --G.hand.states.visible = true
+    end            
+end
 
+local suffixes = {
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'T',
+    'J',
+    'Q',
+    'K',
+    'A'
+}
 
-        on_key_pressed = function(key_name)
-            if (key_name == "down") then
-                --G.hand.states.visible = false
-            end
-            if (key_name == "up") then
-                --G.hand.states.visible = true
-            end            
-        end,
+local suits = {
+    'Hearts',
+    'Diamonds',
+    'Clubs',
+    'Spades'
+}
+
+local seals = {
+    "BASE",
+    "Red",
+    "Blue",
+    "Gold",
+    "Purple"
+}
+
+local editions = {
+    "BASE",
+    "Foil",
+    "Holo",
+    "Polychrome"
+    --{foil = true},
+    --{holo = true},
+    --{polychrome = true}
+}
+
+function GetSeals()
+    return seals
+end
+
+function GetSuits()
+    return suits
+end
+
+function GetEditions()
+    return editions
+end
+
+function getMaterialCenters()
+    local materials = {
+        "BASE",
+        G.P_CENTERS.m_stone,
+        G.P_CENTERS.m_steel,
+        G.P_CENTERS.m_glass,
+        G.P_CENTERS.m_gold,
+        G.P_CENTERS.m_bonus,
+        G.P_CENTERS.m_mult,
+        G.P_CENTERS.m_wild,
+        G.P_CENTERS.m_lucky
     }
-)
+    return materials
+end
 
+-- TODO
+local Custom_Suits = {}
+local Custom_Ranks = {}
+
+local MAX_RANK = 14
+local MIN_RANK = 2
+
+-- get values from cards
+
+function GetCardRank(card)
+    return card.base.id
+end
+
+function GetCardSuit(card)
+    return card.base.suit
+end
+
+function GetCardSeal(card)
+    return card.seal
+end
+
+-- functional methods
+
+function GetSuffixFromRank(rank)
+    if (suffixes[rank + 1 - MIN_RANK] ~= nil) then
+        return suffixes[rank + 1 - MIN_RANK]
+    end
+    return '-1'
+end
+
+function GetCardCenter(card)
+    return card.config.center
+end
+
+function GetCardEdition(card)
+    --return card.edition
+    if (card.edition == nil) then
+        return "BASE"
+    end
+    if (card.edition.foil) then
+        return "Foil"
+    end
+    if (card.edition.holo) then
+        return "Holo"
+    end
+    if (card.edition.polychrome) then
+        return "Polychrome"
+    end
+end
+
+function ChangeCardCenter(card, center)
+    card:set_ability(center)
+end
+
+function ChangeCardSeal(card, seal)
+    card:set_seal(seal, true, true)
+end
+
+function ChangeCardEdition(card, edition)
+    if (edition == "BASE") then
+        card:set_edition(nil, true, true)
+    end
+    if (edition == "Foil") then
+        card:set_edition({foil = true}, true, true)
+    end
+    if (edition == "Holo") then
+        card:set_edition({holo = true}, true, true)
+    end
+    if (edition == "Polychrome") then
+        card:set_edition({polychrome = true}, true, true)
+    end
+end
+
+function ResetCardCenter(card)
+    card:set_ability(G.P_CENTERS.c_base)
+end
+
+function ResetCardSeal(card)
+    card:set_seal(nil, true, true)
+end
+
+function ResetCardEdition(card)
+    card:set_edition(nil, true, true)
+end
+
+function GetNominalFromRank(rank)
+    if (rank <= 9) then
+        return rank
+    end
+    if (rank < 14) then
+        return 10
+    end
+    return 11
+end
+
+function ChangeCardRank(card, rank_suffix)
+    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
+    rank_suffix = GetSuffixFromRank(NormalizeRank(rank_suffix))
+    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+end
+
+function NormalizeRank(rank)
+    local range = MAX_RANK - MIN_RANK + 1
+    return ((rank - MIN_RANK) % range) + MIN_RANK
+end
+
+function ChangeCardSuit(card, suit)
+    local rank = GetCardRank(card)
+    local suit_prefix = string.sub(suit, 1, 1)..'_'
+    local rank_suffix = GetSuffixFromRank(rank)
+    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+end
+
+function AddNewRank(name, suffix)
+
+end
+
+function AddNewSuit(name, prefix)
+    for i = MIN_RANK, MAX_RANK do
+        local suffix = GetSuffixFromRank(NormalizeRank(i))
+        local p_card_obj = {
+            name = suffix .. " of " .. name,
+            value = suffix,
+            suit = name,
+            pos = {x = i - 2, y = #Custom_Suits + 4}
+        }
+        G.P_CARDS[prefix.."_"..suffix] = p_card_obj
+    end
+end
+
+function SetMaxRank(rank)
+    MAX_RANK = rank
+end
+
+function SetMinRank(rank)
+    MIN_RANK = rank
+end
+
+-- helper
+
+function Clamp(min, max, num)
+    return math.max(min, math.min(max, num))
+end
 
 function addFaceCard()
     local suit = ""
@@ -196,8 +386,8 @@ function cycleHand(value, target)
     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
         for i=1, #G.hand.cards do
             if target == nil or i == target then
-                local rank = CardAPI:GetCardRank(G.hand.cards[i])
-                CardAPI:ChangeCardRank(G.hand.cards[i], CardAPI:NormalizeRank(rank + value))
+                local rank = GetCardRank(G.hand.cards[i])
+                ChangeCardRank(G.hand.cards[i], NormalizeRank(rank + value))
             end
         end
 
@@ -238,7 +428,7 @@ function boostHand(value, target)
     if (#G.hand.cards < 1) then return false end
 
     if target ~= nil then
-        local rank = CardAPI:GetCardRank(G.hand.cards[target])
+        local rank = GetCardRank(G.hand.cards[target])
         if value > 0 and rank == 14 then return false end
         if value < 0 and rank == 2 then return false end
     end
@@ -246,11 +436,11 @@ function boostHand(value, target)
     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
         for i=1, #G.hand.cards do
             if target == nil or i == target then
-                local rank = CardAPI:GetCardRank(G.hand.cards[i])
+                local rank = GetCardRank(G.hand.cards[i])
                 rank = rank + value
                 if rank < 2 then rank = 2 end
                 if rank > 14 then rank = 14 end
-                CardAPI:ChangeCardRank(G.hand.cards[i], rank)
+                ChangeCardRank(G.hand.cards[i], rank)
             end
         end
 
@@ -264,7 +454,7 @@ function setHandSuit(value, target)
     if (#G.hand.cards < 1) then return false end
 
     if target ~= nil then
-        local currentSuit = CardAPI:GetCardSuit(G.hand.cards[target])
+        local currentSuit = GetCardSuit(G.hand.cards[target])
         currentSuit = string.sub(currentSuit, 1, 1)
         targetSuit = string.sub(value, 1, 1)
 
@@ -274,7 +464,7 @@ function setHandSuit(value, target)
     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
         for i=1, #G.hand.cards do
             if target == nil or i == target then
-                CardAPI:ChangeCardSuit(G.hand.cards[i], value)
+                ChangeCardSuit(G.hand.cards[i], value)
             end
         end
 
@@ -287,10 +477,10 @@ function cycleHandSuit(target)
     if (G.hand == nil) then return false end
     if (#G.hand.cards < 1) then return false end
     G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function()
-        suits = CardAPI:GetSuits()
+        suits = GetSuits()
         for i=1, #G.hand.cards do
             if target == nil or i == target then
-                local currentSuit = CardAPI:GetCardSuit(G.hand.cards[i])
+                local currentSuit = GetCardSuit(G.hand.cards[i])
                 local currentIndex = 1
                 for j=1, #suits do
                     if (suits[j] == currentSuit) then
@@ -304,7 +494,7 @@ function cycleHandSuit(target)
                 if (nextIndex < 1) then
                     nextIndex = #suits
                 end
-                CardAPI:ChangeCardSuit(G.hand.cards[i], suits[nextIndex])
+                ChangeCardSuit(G.hand.cards[i], suits[nextIndex])
             end
         end
 
@@ -466,7 +656,7 @@ function changeHandEdition(edition, target)
 
     if target ~= nil then
         local card = G.hand.cards[target]
-        local cur = CardAPI:GetCardEdition(card)
+        local cur = GetCardEdition(card)
         if cur == edition then return false end
     end
 
@@ -474,7 +664,7 @@ function changeHandEdition(edition, target)
         for i=1, #G.hand.cards do
             if target == nil or i == target then
                 local card = G.hand.cards[i]
-                CardAPI:ChangeCardEdition(card, edition)
+                ChangeCardEdition(card, edition)
             end
         end
 
@@ -491,7 +681,7 @@ function changeJokerEdition(edition, target)
 
     if target ~= nil then
         local card = G.jokers.cards[target]
-        local cur = CardAPI:GetCardEdition(card)
+        local cur = GetCardEdition(card)
         if cur == edition then return false end
     end
 
@@ -499,7 +689,7 @@ function changeJokerEdition(edition, target)
         for i=1, #G.jokers.cards do
             if target == nil or i == target then
                 local card = G.jokers.cards[i]
-                CardAPI:ChangeCardEdition(card, edition)
+                ChangeCardEdition(card, edition)
             end
         end
 
@@ -515,7 +705,7 @@ function changeHandSeal(seal, target)
 
     if target ~= nil then
         local card = G.hand.cards[target]
-        local cur = CardAPI:GetCardSeal(card)
+        local cur = GetCardSeal(card)
         if cur == seal then return false end
     end
 
@@ -523,7 +713,7 @@ function changeHandSeal(seal, target)
         for i=1, #G.hand.cards do
             if target == nil or i == target then
                 local card = G.hand.cards[i]
-                CardAPI:ChangeCardSeal(card, seal)
+                ChangeCardSeal(card, seal)
             end
         end
 
@@ -540,7 +730,7 @@ function changeHandCenter(center, target)
 
     if target ~= nil then
         local card = G.hand.cards[target]
-        local cur = CardAPI:GetCardCenter(card)
+        local cur = GetCardCenter(card)
         if cur == center then return false end
     end
 
@@ -548,7 +738,7 @@ function changeHandCenter(center, target)
         for i=1, #G.hand.cards do
             if target == nil or i == target then
                 local card = G.hand.cards[i]
-                CardAPI:ChangeCardCenter(card, center)
+                ChangeCardCenter(card, center)
             end
         end
 
@@ -745,8 +935,8 @@ function randomizeHand(target)
 
                 local value = math.random(14)
 
-                CardAPI:ChangeCardSuit(G.hand.cards[i], suit)
-                CardAPI:ChangeCardRank(G.hand.cards[i], CardAPI:NormalizeRank(value))
+                ChangeCardSuit(G.hand.cards[i], suit)
+                ChangeCardRank(G.hand.cards[i], NormalizeRank(value))
             end
         end
 
@@ -763,7 +953,7 @@ function randomizeValue(target)
             if target == nil or i == target then
                 local value = math.random(14)
 
-                CardAPI:ChangeCardRank(G.hand.cards[i], CardAPI:NormalizeRank(value))
+                ChangeCardRank(G.hand.cards[i], NormalizeRank(value))
             end
         end
 
@@ -786,7 +976,7 @@ function randomizeSuit(target)
                 if s == 3 then suit = "Hearts" end
                 if s == 4 then suit = "Spades" end
                 
-                CardAPI:ChangeCardSuit(G.hand.cards[i], suit)
+                ChangeCardSuit(G.hand.cards[i], suit)
             end
         end
 
@@ -1608,3 +1798,11 @@ function use_card(card, mute, nosave)
       end}))
     end
   end
+
+  
+return {
+    on_enable = on_enable,
+    on_disable = on_disable,
+    on_key_pressed = on_key_pressed,
+    on_pre_update = on_pre_update,
+}
