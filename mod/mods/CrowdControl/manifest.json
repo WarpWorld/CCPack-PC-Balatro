@@ -1,0 +1,13 @@
+{
+    "id": "CrowdControl",
+    "name": "Crowd Control",
+    "version": "1.0.2",
+    "description": [
+        "Adds support for Crowd Control integration",
+	"http://crowdcontrol.live"
+    ],
+    "author": "dtothefourth",
+    "load_before": [],
+  "load_after": [],
+  "commands": []
+}
