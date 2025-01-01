@@ -26,11 +26,7 @@ function Game:update(dt)
     if not CC.announce and CC.client and not G.screenwipe then
 
         local status = CC.client:getpeername()
-        if status == nil then return end
-
-
-
-        if G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
+        if status and G.STATE == G.STATES.SELECTING_HAND or G.STATE == G.STATES.SHOP or G.STATE == G.STATES.BLIND_SELECT or G.STATE == G.STATES.MENU then
             CC.announce = true
 
     
@@ -41,14 +37,8 @@ function Game:update(dt)
                     G.FUNCS.wipe_off()
                 return true end }))
             return true end }))
-
-
-    
-            return
         end
-    end
-
-    if CC.client then
+    elseif CC.client then
         CC.util.parseMessages()
     end
     return upd(self, dt)
