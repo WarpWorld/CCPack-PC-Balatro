@@ -821,6 +821,7 @@ function CC.util.parseMessages(input)
         end
 
         local responseAsString = json.encode(response)
+        responseAsString = responseAsString .. "\0"
         local ind, err, last = CC.client:send(responseAsString)
     end
 end
