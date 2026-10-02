@@ -1,5 +1,11 @@
 # Balatro
 
+## Pack metadata
+- **Game display name:** Balatro
+- **Crowd Control game ID:** `Balatro`
+- **Connector type:** `SimpleTCPServerConnector`
+
+
 This repository provides Crowd Control mods for two Balatro mod-loader
 layouts:
 
