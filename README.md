@@ -1,23 +1,46 @@
-# Crowd Control - Balatro
+# Balatro
 
-Crowd Control is an application that allows live streamers to enhance their gaming broadcasts by enabling real-time interaction between viewers and the game being played. Through Crowd Control, viewers can directly influence the gameplay experience, creating a dynamic and engaging environment that brings the audience closer to the action.
+This repository provides Crowd Control mods for two Balatro mod-loader
+layouts:
 
-Crowd Control supports multiple platforms, such as Twitch, YouTube, Discord and more.
+- `steamodded\CrowdControl` for **Steamodded** (the manifest requires
+  Steamodded `>=1.*~`);
+- `balamod\CrowdControl` for the Balamod layout.
 
-# Getting Started
+Install one layout that matches the mod loader in use. Do not install both
+copies of the CrowdControl mod in the same game installation.
 
-To get started using this project you will need to check the out the src folder for the meat of the mod.
+## Requirements
 
-You can load the ``Balatro.cs`` in our SDK which can be found on our [Developer Page](https://developer.crowdcontrol.live/sdk/).
+- Balatro with the selected supported mod loader.
+- Crowd Control with the matching **Balatro** or **BalatroSteamodded** pack.
 
-Follow instructions on that page to learn how to add effects to your CS file and how to activate them.
+## Installation and setup
 
-# Notes
+1. Install the applicable Balatro mod loader.
+2. Copy the matching `CrowdControl` directory from this repository into that
+   loader's normal mod directory.
+3. Start the Crowd Control desktop app and select the matching pack.
+4. Launch Balatro so the mod can initialize and connect.
 
-Keep in mind updating your local CS file and mod will not make these effects live on the Crowd Control Interact/Twitch extension. If you add new effects and wish for them to get added to the existing pack on our service you will need to reach out in the #cc-developer channel in our [Discord](https://warp.world/discord).
+## Connection behavior
 
+Both Lua implementations create a local TCP client and connect to
+`127.0.0.1:58430`, the port on which the corresponding Crowd Control pack
+listens. Start the desktop session before launching or reloading the mod so
+the initial connection can succeed.
 
-## Links
-[Crowd Control](https://crowdcontrol.live)
+## Troubleshooting
 
-[Developer Page](https://developer.crowdcontrol.live/)
+- **No connection:** verify that the desktop app is running with the matching
+  Balatro pack and that port `58430` is available locally.
+- **The mod does not load:** check that the selected directory matches the
+  installed loader, especially the Steamodded dependency for the
+  `steamodded` variant.
+- **Behavior is duplicated or inconsistent:** remove the other CrowdControl
+  variant; only one loader-specific implementation should be installed.
+
+## Repository layout
+
+- `Balatro.cs` and `BalatroSteamodded.cs` define the supported pack variants.
+- `balamod/` and `steamodded/` contain their respective game-side integrations.
