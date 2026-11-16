@@ -1,0 +1,12 @@
+{
+  "id": "CrowdControl",
+  "name": "Crowd Control",
+  "version": "2.0.0",
+  "description": "Crowd Control allows your livestream viewers on any platform to interact with your game. Twitch, YouTube, TikTok and more! http://crowdcontrol.live",
+  "author": ["The Crowd Control Team"],
+  "prefix": "crowd",
+  "main_file": "main.lua",
+  "dependencies": [
+    "Steamodded (>=1.*~)"
+  ]
+}
